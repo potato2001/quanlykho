@@ -105,7 +105,7 @@ async def create_order(
 #         return JSONResponse(status_code=400, content={"message": "Không tồn tại sản phẩm!"})
 
 #Lấy đơn hàng
-@router.get("/order/{orderId}", summary="Lấy sản phẩm theo mã")
+@router.get("/order/{orderId}", summary="Lấy đơn hàng theo mã")
 def get_order_by_id(
     db: Session = Depends(get_database_session),
     orderId= int
@@ -114,7 +114,7 @@ def get_order_by_id(
         db.query(
             ProductSchema.productName,
             ProductSchema.serial,
-            ProductSchema.unitPrice,
+            ProductSchema.unitPrice*OrdersSchema.quantityProduct,
             OrdersSchema
         )
         .join(ProductSchema, ProductSchema.productId == OrdersSchema.productId)
@@ -128,12 +128,41 @@ def get_order_by_id(
     result = {
         "productName": orders[0],
         "serial": orders[1],
-        "unitPrice": orders[2],
-        "Order":orders[3]
+        "price": orders[2],
+        "orderInfo":orders[3]
     }
 
     return {"data": result}
+#Lấy tất cả đơn hàng
+@router.get("/orders/all", summary="Lấy tất cả đơn hàng")
+def get_all_order(
+    db: Session = Depends(get_database_session),
+):
+    orders = (
+        db.query(
+            ProductSchema.productName,
+            ProductSchema.serial,
+            ProductSchema.unitPrice*OrdersSchema.quantityProduct,
+            OrdersSchema
+        )
+        .join(ProductSchema, ProductSchema.productId == OrdersSchema.productId)
+        .all()
+    )
 
+    if not orders:
+        return JSONResponse(status_code=404, content={"message": "Order not found"})
+
+    result = []
+    for order in orders:
+        result.append(
+            {   
+            "productName":order[0],
+            "serial":order[1],
+            "price":order[2],
+            "orderInfo":order[3]
+            }
+        )
+    return {"data": result}
 # #Lấy tất cả sản phẩm
 # @router.get("/products", summary="Lấy tất cả sản phẩm")
 # def get_products(
