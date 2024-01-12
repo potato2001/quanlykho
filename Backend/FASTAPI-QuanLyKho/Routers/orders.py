@@ -123,7 +123,7 @@ def get_order_by_id(
     )
 
     if not orders:
-        return JSONResponse(status_code=404, content={"message": "Order not found"})
+        return JSONResponse(status_code=404, content={"message": "Không có Order nào!"})
 
     result = {
         "productName": orders[0],
@@ -133,6 +133,7 @@ def get_order_by_id(
     }
 
     return {"data": result}
+
 #Lấy tất cả đơn hàng
 @router.get("/orders/all", summary="Lấy tất cả đơn hàng")
 def get_all_order(
@@ -150,7 +151,7 @@ def get_all_order(
     )
 
     if not orders:
-        return JSONResponse(status_code=404, content={"message": "Order not found"})
+        return JSONResponse(status_code=404, content={"message": "Không có Order nào!"})
 
     result = []
     for order in orders:
@@ -163,66 +164,35 @@ def get_all_order(
             }
         )
     return {"data": result}
-# #Lấy tất cả sản phẩm
-# @router.get("/products", summary="Lấy tất cả sản phẩm")
-# def get_products(
-#     db: Session = Depends(get_database_session),
-# ):
-#     products = (
-#     db.query(ProductSchema)  # Specify the model (ProductSchema) to query
-#     .all()
-#     )
-#     print(products)
-#     result = []
-#     for product in products:
-#         result.append(
-#             {   
-#               product
-#             }
-#         )
-#     return {"data": result}
 
-# #Lấy tất cả sản phẩm còn trong kho
-# @router.get("/products/all", summary="Lấy sản phẩm theo mã")
-# def get_all_products(
-#     db: Session = Depends(get_database_session),
-# ):
-#     products = (
-#     db.query(ProductSchema) 
-#     .filter(ProductSchema.quantity>0,ProductSchema.hasBeenDeleted == 0)
-#     .all()
-#     )
-#     print(products)
-#     result = []
-#     for product in products:
-#         result.append(
-#             {   
-#               product
-#             }
-#         )
-#     return {"data": result}
-# #Lấy tất cả sản phẩm theo hãng
-# @router.get("/products/all/brand", summary="Lấy sản phẩm theo hãng")
-# def get_all_products_with_category(
-#     brand: str = Query(None, description="Filter products by brand"),
-#     db: Session = Depends(get_database_session),
-# ):
-#     query = (
-#         db.query(ProductSchema)
-#     )
+#Lấy đơn hàng theo tên khách hàng (chưa xong)
+@router.get("/order/{customerName}", summary="Lấy đơn hàng theo tên khách hàng")
+def get_order_by_customer_name(
+    db: Session = Depends(get_database_session),
+    customerName= str
+):
+    orders = (
+        db.query(
+            ProductSchema.productName,
+            ProductSchema.serial,
+            ProductSchema.unitPrice*OrdersSchema.quantityProduct,
+            OrdersSchema
+        )
+        .join(ProductSchema, ProductSchema.productId == OrdersSchema.productId)
+        .filter(OrdersSchema.customerName == customerName)
+        .first()
+    )
 
-#     if brand:
-#         query = query.filter(ProductSchema.brand == brand)
+    if not orders:
+        return JSONResponse(status_code=404, content={"message": "Không có đơn hàng nào của mã khách hàng này!"})
 
-#     products = query.all()
-#     result = []
-#     for product in products:
-#         result.append(
-#             {   
-#               product
-#             }
-#         )
-#     return {"data": result}
+    result = {
+        "productName": orders[0],
+        "serial": orders[1],
+        "price": orders[2],
+        "orderInfo":orders[3]
+    }
+
 
 # #Lấy tất cả sản phẩm theo hãng và còn hàng (chạy không lọc ra theo hãng)
 # @router.get("/products/all/brand/instock", summary="Lấy sản phẩm theo hãng và còn hàng")
