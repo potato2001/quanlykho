@@ -11,14 +11,24 @@ from datetime import date
 from auth.auth_bearer import JWTBearer
 from auth.auth_handler import signJWT,decodeJWT
 from model import UserSchema
-import schema
 from database import SessionLocal, engine
-import model
 from Routers import login,user,products,category,suppliers,orders
 import uuid
+from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI()
+origins = [
+    "http://localhost",
+    "http://localhost:8080",  # Adjust this based on your frontend URL
+]
 
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 #Người dùng
 app.include_router(login.router, tags=['Login Controller'], prefix='')

@@ -11,6 +11,7 @@ from model import UserSchema
 import schema
 from database import SessionLocal, engine
 import model
+from fastapi.security import OAuth2PasswordBearer
 
 
 router = APIRouter()  
@@ -48,8 +49,8 @@ async def create_account(
 
 @router.post("/login",status_code=status.HTTP_200_OK, summary="Đăng nhập")
 async def login(db:Session=Depends(get_database_session),
-                userName:schema.UserSchema.userName=Form(...),
-                userPassword:schema.UserSchema.userPassword=Form(...)
+                userName:str=Form(...),
+                userPassword:str=Form(...)
                 ):
     print(userPassword)
     if userPassword == '1':
