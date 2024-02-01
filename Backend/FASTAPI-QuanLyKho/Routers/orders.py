@@ -49,40 +49,32 @@ async def create_order(
         "data:" "Tạo đơn hàng thành công!"
     }
 
-# #Sửa thông tin sản phẩm
-# @router.put("/update_product",dependencies=[Depends(JWTBearer())], summary="Sửa sản phẩm")
-# async def update_product(
-#     db: Session = Depends(get_database_session),
-#     productId: str = Form(...),
-#     supplierId: str = Form(...),
-#     productName: str = Form(...),
-#     categoryId: str = Form(...),
-#     brand:str = Form(...),
-#     serial:str = Form(...),
-#     description:str = Form(...),
-#     quantity: int = Form(...),
-#     unitPrice: float = Form(...),
-#     hasBeenDeleted:int=Form(...)
-# ):
-#     product_exists = db.query(exists().where(ProductSchema.productId == productId)).scalar()
-#     product = db.query(ProductSchema).get(productId)
-#     if product_exists:
-#         print(product)
-#         product.productName = productName
-#         product.supplierId = supplierId
-#         product.categoryId = categoryId
-#         product.brand = brand
-#         product.serial = serial
-#         product.description = description
-#         product.quantity = quantity
-#         product.unitPrice = unitPrice
-#         db.commit()
-#         db.refresh(product)
-#         return {
-#             "data": "Thông tin sản phẩm đã được cập nhật!"
-#         }
-#     else:
-#         return JSONResponse(status_code=400, content={"message": "Không có thông tin sản phẩm!"})
+#Sửa thông tin đơn hàng
+@router.put("/update_order",dependencies=[Depends(JWTBearer())], summary="Sửa đơn hàng")
+async def update_order(
+    db: Session = Depends(get_database_session),
+    productId: str = Form(...),
+    customerName: str = Form(...),
+    phoneNumber:str=Form(...),
+    address:str=Form(...),
+    quantityProduct:int=Form(...)
+):
+    order_exists = db.query(exists().where(OrdersSchema.productId == productId)).scalar()
+    order = db.query(OrdersSchema).get(productId)
+    if order_exists:
+        print(order)
+        order.productId = productId
+        order.customerName = customerName
+        order.phoneNumber = phoneNumber
+        order.address = address
+        order.quantityProduct = quantityProduct
+        db.commit()
+        db.refresh(order)
+        return {
+            "data": "Thông tin đơn hàng đã được cập nhật!"
+        }
+    else:
+        return JSONResponse(status_code=400, content={"message": "Không có thông tin đơn hàng!"})
 
 # #Xóa sản phẩm
 # @router.delete("/delete_product",dependencies=[Depends(JWTBearer())], summary="Xóa sản phẩm")
