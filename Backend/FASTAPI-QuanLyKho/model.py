@@ -8,63 +8,85 @@ from sqlalchemy.orm import  relationship
 
 #Sản phẩm
 class ProductSchema(Base):
-    __tablename__="Products"
-    Id = Column(Integer, primary_key=True, index=True)
-    productId= Column(String)
-    supplierId = Column(String)
-    productName = Column(String(100))
-    categoryId = Column(String(45))
-    brand = Column(String(10))
-    serial = Column(String(10), unique=True)
-    description = Column(String)
-    quantity = Column(Integer)
-    unitPrice = Column(Integer)
-    hasBeenDeleted=Column(String)
-    status=Column(String)
+    __tablename__= "Product"
+    #ID = Column(Integer, primary_key=True, index=True)
+    ProductID = Column(String)
+    ProductCode = Column(String)
+    SupplierID = Column(String)
+    ProductName = Column(String(100))
+    ProductCategory = Column(String(45))
+    ProductBrand = Column(String(10))
+    ProductSerial = Column(String(10), unique=True)
+    ProductDescription = Column(String)
+    ReorderQuantity = Column(Integer)
+    UnitPrice = Column(Integer)
+    Status=Column(String)
+    HasBeenDeleted=Column(String)
 
 
 #Nhà cung cấp
-class SuppliersSchema(Base):
-    __tablename__="Suppliers"
-    _supplierId = Column(Integer, primary_key=True, index=True)
-    supplierName = Column(String(45))
-    contactPhone = Column(Integer)
-    contactEmail = Column(String(100),unique=True)
-    hasBeenDeleted=Column(String)
+class ProviderSchema(Base):
+    __tablename__= "Provider"
+    ProviderID = Column(Integer, primary_key=True, index=True)
+    ProviderName = Column(String(45))
+    ProviderAddress = Column(Integer)
+    ProviderPhone = Column(String(100),unique=True)
+    ProviderEmail = Column(String)
+    HasBeenDeleted = Column(String)
+
+#Kho hàng
+class InventorySchema(Base):
+    __tablename__ = "Inventory"
+    InventoryID = Column(Integer, primary_key=True, index=True)
+    ProductID = Column(String)
+    QuantityAvailable = Column(String)
+
+#Lịch sử kho hàng
+class InventoryHistorySchema(Base):
+    __tablename__ = "InventoryHistory"
+    HistoryID = Column(Integer, primary_key=True, index=True)
+    ProductID = Column(String)
+    QuantityChange = Column(Integer)
+    ChangeDate = Column(String)
 
 
 #Đơn hàng
-class OrdersSchema(Base):
-    __tablename__="Orders"
-    orderId = Column(Integer, primary_key=True, index=True)
-    productId=Column(Integer)
-    quantityProduct=Column(Integer)
-    customerName = Column(String)
-    phoneNumber=Column(String)
-    address=Column(String)
-    orderDate = Column(Date)
-    status = Column(String(20))
+class OrderSchema(Base):
+    __tablename__= "Order"
+    OrderID = Column(Integer, primary_key=True, index=True)
+    ProductID = Column(String)
+    ProductQuantity=Column(Integer)
+    OrderDate = Column(String)
+    Status = Column(String)
 
 #Chi tiết đơn hàng
-class OrderDetailsSchema(Base):
-    __tablename__="OrderDetails"
-    orderDetailId = Column(Integer, primary_key=True, index=True)
-    orderId = Column(Integer)
-    productId = Column(Integer)
-    amount = Column(Integer)
-    unitPrice = Column(Integer)
+class OrderDetailSchema(Base):
+    __tablename__= "OrderDetail"
+    OrderDetailID = Column(Integer, primary_key=True, index=True)
+    OrderID = Column(Integer)
+    ProductID = Column(String)
+    OrderQuantity = Column(Integer)
+    UnitPrice = Column(String)
 
 #Người dùng
 class UserSchema(Base):
-    __tablename__="User"
-    userId = Column(Integer, primary_key=True, index=True)
-    userName = Column(String(45), unique=True)
-    userPassword = Column(String(45), unique=True)
-    userRole = Column(Integer)
+    __tablename__= "User"
+    UserID = Column(Integer, primary_key=True, index=True)
+    UserName = Column(String(45), unique=True)
+    UserPassword = Column(String(45), unique=True)
+    Role = Column(Integer)
 
 #Phân loại hàng
 class CategorySchema(Base):
-    __tablename__="Category"
-    Id = Column(Integer,primary_key=True, index=True)
-    categoryName = Column(String)
-    hasBeenDeleted=Column(String)
+    __tablename__= "Category"
+    CategoryID = Column(Integer,primary_key=True, index=True)
+    CategoryName = Column(String)
+    HasBeenDeleted=Column(String)
+
+#Hoá đơn
+class InvoiceSchema(Base):
+    __tablename__ = "Invoice"
+    InvoiceID = Column(Integer, primary_key=True, index=True)
+    UserID = Column(String)
+    OrderDetailID = Column(String)
+    TotalCost = (String)

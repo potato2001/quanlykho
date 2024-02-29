@@ -27,15 +27,15 @@ def get_database_session():
 @router.post("/create_category",dependencies=[Depends(JWTBearer())], summary="Tạo loại sản phẩm")
 async def create_category(
     db: Session = Depends(get_database_session),
-    categoryName: str = Form(...),
+    CategoryName: str = Form(...),
 ):
-    category_exists = db.query(exists().where(CategorySchema.categoryName == categoryName)).scalar()
-    if category_exists:
+    Category_exists = db.query(exists().where(CategorySchema.CategoryName == CategoryName)).scalar()
+    if Category_exists:
         return {"data": "Loại sản phẩm đã tồn tại!"}
-    categorySchema = CategorySchema(categoryName = categoryName)
-    db.add(categorySchema)
+    CategorySchema = CategorySchema(categoryName = CategoryName)
+    db.add(CategorySchema)
     db.commit()
-    db.refresh(categorySchema)
+    db.refresh(CategorySchema)
     return {
         "data:" "Tạo loại sản phẩm thành công!"
     }
@@ -44,15 +44,15 @@ async def create_category(
 @router.post("/update_category",dependencies=[Depends(JWTBearer())], summary="Sửa loại sản phẩm")
 async def update_category(
     db: Session = Depends(get_database_session),
-    categoryName: str = Form(...),
+    CategoryName: str = Form(...),
 ):
-    category_exists = db.query(exists().where(CategorySchema.categoryName == categoryName)).scalar()
-    category = db.query(CategorySchema).get(categoryName)
-    if category_exists:
-        print(category)
-        category.categoryName = categoryName
+    Category_exists = db.query(exists().where(CategorySchema.CategoryName == CategoryName)).scalar()
+    Category = db.query(CategorySchema).get(CategoryName)
+    if Category_exists:
+        print(Category)
+        Category.CategoryName = CategoryName
         db.commit()
-        db.refresh(category)
+        db.refresh(Category)
         return {
             "data": "Thông tin sản phẩm đã được cập nhật!"
         }
@@ -63,15 +63,15 @@ async def update_category(
 @router.delete("/delete_category",dependencies=[Depends(JWTBearer())], summary="Xóa loại sản phẩm")
 async def delete_category(
     db: Session = Depends(get_database_session),
-    Id: int = Form(...)
+    CategoryID: int = Form(...)
 ):
-    category_exists = db.query(exists().where(CategorySchema.Id == Id)).scalar()
-    if category_exists:
-        category = db.query(CategorySchema).get(Id)
-        category.hasBeenDeleted=1
+    Category_exists = db.query(exists().where(CategorySchema.CategoryID == CategoryID)).scalar()
+    if Category_exists:
+        Category = db.query(CategorySchema).get(CategoryID)
+        Category.HasBeenDeleted=1
         # db.delete(product)
         db.commit()
-        db.refresh(category)
+        db.refresh(Category)
 
         return{
          "data": "Xóa loại sản phẩm thành công!" 
@@ -84,16 +84,16 @@ async def delete_category(
 def get_category(
     db: Session = Depends(get_database_session),
 ):
-    category = (
+    Category = (
     db.query(CategorySchema)
     .all()
     )
-    print(category)
+    print(Category)
     result = []
-    for category in category:
+    for Category in Category:
         result.append(
             {   
-              category
+              Category
             }
         )
     return {"data": result}

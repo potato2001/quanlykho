@@ -10,7 +10,7 @@ from auth.auth_handler import signJWT,decodeJWT,refresh_access_token
 import schema
 from database import SessionLocal, engine
 import model
-from model import OrdersSchema,ProductSchema
+from model import OrderSchema,ProductSchema
 
 
 router = APIRouter()  
@@ -23,24 +23,24 @@ def get_database_session():
         yield db
     finally:
         db.close()
-#Tạo đơn hàng
+
+#Tạo đơn hàng (Chưa xong và chưa có phần nối với thông tin người đặt)
 @router.post("/create_order", summary="Tạo đơn hàng")
 async def create_order(
     db: Session = Depends(get_database_session),
-    productId: str = Form(...),
-    customerName: str = Form(...),
-    phoneNumber:str=Form(...),
-    address:str=Form(...),
-    quantityProduct:int=Form(...)
+    ProductID: str = Form(...),
+    ProductQuantity: str = Form(...),
+    OrderDate:str=Form(...),
+    Status:str=Form(...),
 ):
-    product = db.query(ProductSchema).filter_by(productId=productId).first()
-    if(product.quantity==0):
-        product.status == 0
+    Product = db.query(ProductSchema).filter_by(ProductID=ProductID).first()
+    if(Product.ReorderQuantity==0):
+        Product.status == 0
         db.commit()
         return JSONResponse(status_code=400, content={"message": "Sản phẩm đã hết"})
-    if(product.quantity<quantityProduct):
-        return JSONResponse(status_code=400, content={"message": f"Sản phẩm tồn kho còn {product.quantity}"})
-    ordersSchema = OrdersSchema(productId = productId,customerName = customerName, orderDate = datetime.today().strftime("%H:%M ,%d-%m-%Y"),phoneNumber=phoneNumber,address=address,status=0,quantityProduct=quantityProduct)
+    if(ProductQuantity<Product.ReorderQuantity):
+        return JSONResponse(status_code=400, content={"message": f"Sản phẩm tồn kho còn {Product.ReorderQuantity}"})
+    OrderSchema = OrderSchema(ProductID = ProductID, OrderDate = datetime.today().strftime("%H:%M ,%d-%m-%Y"), Status=0, ProductQuantity=ProductQuantity)
     product.quantity -= quantityProduct
     db.add(ordersSchema)
     db.commit()

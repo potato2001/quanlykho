@@ -27,23 +27,25 @@ def get_database_session():
 @router.post("/create_product",dependencies=[Depends(JWTBearer())], summary="Tạo sản phẩm")
 async def create_product(
     db: Session = Depends(get_database_session),
-    productId: str = Form(...),
-    supplierId: str = Form(...),
-    productName: str = Form(...),
-    categoryId: str = Form(...),
-    brand:str = Form(...),
-    serial:str = Form(...),
-    description:str = Form(...),
-    quantity: int = Form(...),
-    unitPrice: float = Form(...),
+    ProductID: str = Form(...),
+    ProviderID: str = Form(...),
+    ProductName: str = Form(...),
+    CategoryID: str = Form(...),
+    #ProductCategory: str = Form(...),
+    ProductBrand:str = Form(...),
+    ProductSerial:str = Form(...),
+    ProductDescription:str = Form(...),
+    ReorderQuantity: int = Form(...),
+    UnitPrice: float = Form(...),
+    Status: str = Form(...),
 ):
-    product_exists = db.query(exists().where(ProductSchema.productId == productId)).scalar()
-    if product_exists:
+    Product_exists = db.query(exists().where(ProductSchema.ProductID == ProductID)).scalar()
+    if Product_exists:
         return {"data": "Sản phẩm đã tồn tại!"}
-    productSchema = ProductSchema(productId = productId,supplierId = supplierId, productName = productName,categoryId=categoryId,brand=brand,serial=serial,description=description,quantity=quantity,unitPrice=unitPrice,hasBeenDeleted=0)
-    db.add(productSchema)
+    ProductSchema = ProductSchema(ProductID = ProductID, ProviderID = ProviderID, ProductName = ProductName, CategoryID=CategoryID, ProductBrand=ProductBrand, ProductSerial=ProductSerial, ProductDescription=ProductDescription, ReorderQuantity=ReorderQuantity, UnitPrice=UnitPrice, Status=Status, HasBeenDeleted=0)
+    db.add(ProductSchema)
     db.commit()
-    db.refresh(productSchema)
+    db.refresh(ProductSchema)
     return {
         "data:" "Tạo sản phẩm thành công!"
     }
@@ -52,29 +54,28 @@ async def create_product(
 @router.put("/update_product",dependencies=[Depends(JWTBearer())], summary="Sửa sản phẩm")
 async def update_product(
     db: Session = Depends(get_database_session),
-    productId: str = Form(...),
-    supplierId: str = Form(...),
-    productName: str = Form(...),
-    categoryId: str = Form(...),
-    brand:str = Form(...),
-    serial:str = Form(...),
-    description:str = Form(...),
-    quantity: int = Form(...),
-    unitPrice: float = Form(...),
-    hasBeenDeleted:int=Form(...)
+    ProductID: str = Form(...),
+    ProviderID: str = Form(...),
+    ProductName: str = Form(...),
+    CategoryID: str = Form(...),
+    ProductBrand:str = Form(...),
+    ProductSerial:str = Form(...),
+    ProductDescription:str = Form(...),
+    ReorderQuantity: int = Form(...),
+    UnitPrice: float = Form(...),
 ):
-    product_exists = db.query(exists().where(ProductSchema.productId == productId)).scalar()
-    product = db.query(ProductSchema).get(productId)
+    product_exists = db.query(exists().where(ProductSchema.ProductID == ProductID)).scalar()
+    product = db.query(ProductSchema).get(ProductID)
     if product_exists:
         print(product)
-        product.productName = productName
-        product.supplierId = supplierId
-        product.categoryId = categoryId
-        product.brand = brand
-        product.serial = serial
-        product.description = description
-        product.quantity = quantity
-        product.unitPrice = unitPrice
+        product.ProductName = ProductName
+        product.ProviderID = ProviderID
+        product.CategoryID = CategoryID
+        product.ProductBrand = ProductBrand
+        product.ProductSerial = ProductSerial
+        product.ProductDescription = ProductDescription
+        product.ReorderQuantity = ReorderQuantity
+        product.UnitPrice = UnitPrice
         db.commit()
         db.refresh(product)
         return {
@@ -87,15 +88,15 @@ async def update_product(
 @router.delete("/delete_product",dependencies=[Depends(JWTBearer())], summary="Xóa sản phẩm")
 async def delete_product(
     db: Session = Depends(get_database_session),
-    Id: int = Form(...)
+    ProductID: int = Form(...)
 ):
-    product_exists = db.query(exists().where(ProductSchema.Id == Id)).scalar()
-    if product_exists:
-        product = db.query(ProductSchema).get(Id)
-        product.hasBeenDeleted=1
+    Product_exists = db.query(exists().where(ProductSchema.ProductID == ProductID)).scalar()
+    if Product_exists:
+        Product = db.query(ProductSchema).get(ProductID)
+        Product.hasBeenDeleted=1
         # db.delete(product)
         db.commit()
-        db.refresh(product)
+        db.refresh(Product)
 
         return{
          "data": "Xóa sản phẩm thành công!"
@@ -104,19 +105,19 @@ async def delete_product(
         return JSONResponse(status_code=400, content={"message": "Không tồn tại sản phẩm!"})
 
 #Lấy sản phẩm theo mã sản phẩm
-@router.get("/product/{productId}", summary="Lấy sản phẩm theo mã")
+@router.get("/Product/{ProductID}", summary="Lấy sản phẩm theo mã")
 def get_courses_with_subject_info(
     db: Session = Depends(get_database_session),
-    productId=str
+    ProductID = str
 ):
-    products = (
+    Product = (
     db.query(ProductSchema)  # Specify the model (ProductSchema) to query
-    .filter(ProductSchema.productId == productId)
+    .filter(ProductSchema.ProductID == ProductID)
     .all()
     )
-    print(products)
+    print(Product)
     result = []
-    for product in products:
+    for product in Product:
         result.append(
             {   
               product
@@ -125,17 +126,17 @@ def get_courses_with_subject_info(
     return {"data": result}
 
 #Lấy tất cả sản phẩm
-@router.get("/products", summary="Lấy tất cả sản phẩm")
+@router.get("/Product", summary="Lấy tất cả sản phẩm")
 def get_products(
     db: Session = Depends(get_database_session),
 ):
-    products = (
+    Product = (
     db.query(ProductSchema)  # Specify the model (ProductSchema) to query
     .all()
     )
-    print(products)
+    print(Product)
     result = []
-    for product in products:
+    for product in Product:
         result.append(
             {   
               product
@@ -144,114 +145,115 @@ def get_products(
     return {"data": result}
 
 #Lấy tất cả sản phẩm còn trong kho
-@router.get("/products/all", summary="Lấy sản phẩm theo mã")
+@router.get("/Product/All", summary="Lấy sản phẩm theo mã")
 def get_all_products(
     db: Session = Depends(get_database_session),
 ):
-    products = (
+    Product = (
     db.query(ProductSchema) 
-    .filter(ProductSchema.quantity>0,ProductSchema.hasBeenDeleted == 0)
+    .filter(ProductSchema.ReorderQuantity>0,ProductSchema.HasBeenDeleted == 0)
     .all()
     )
-    print(products)
+    print(Product)
     result = []
-    for product in products:
+    for Product in Product:
         result.append(
             {   
-              product
+              Product
             }
         )
     return {"data": result}
+
 #Lấy tất cả sản phẩm theo hãng
-@router.get("/products/all/brand", summary="Lấy sản phẩm theo hãng")
-def get_all_products_with_category(
-    brand: str = Query(None, description="Filter products by brand"),
+@router.get("/Product/All/ProductBrand", summary="Lấy sản phẩm theo hãng")
+def get_all_products_with_brand(
+    ProductBrand: str = Query(None),
     db: Session = Depends(get_database_session),
 ):
     query = (
         db.query(ProductSchema)
     )
 
-    if brand:
-        query = query.filter(ProductSchema.brand == brand)
+    if ProductBrand:
+        query = query.filter(ProductSchema.ProductBrand == ProductBrand)
 
-    products = query.all()
+    Product = query.all()
     result = []
-    for product in products:
+    for Product in Product:
         result.append(
             {   
-              product
+              Product
             }
         )
     return {"data": result}
 
 #Lấy tất cả sản phẩm theo hãng và còn hàng (chạy không lọc ra theo hãng)
-@router.get("/products/all/brand/instock", summary="Lấy sản phẩm theo hãng và còn hàng")
-def get_all_products_with_category(
-    brand: str = Query(None, description="Filter products by brand"),
+@router.get("/Product/All/ProductBrand/Instock", summary="Lấy sản phẩm theo hãng và còn hàng")
+def get_all_products_with_brand_instock(
+    ProductBrand: str = Query(None),
     db: Session = Depends(get_database_session),
 ):
     query = (
         db.query(ProductSchema)
-        .filter(ProductSchema.quantity > 0, ProductSchema.hasBeenDeleted == 0)
+        .filter(ProductSchema.ReorderQuantity > 0, ProductSchema.HasBeenDeleted == 0)
     )
 
-    if brand:
-        query = query.filter(ProductSchema.brand == brand)
+    if ProductBrand:
+        query = query.filter(ProductSchema.ProductBrand == ProductBrand)
 
-    products = query.all()
+    Product = query.all()
     result = []
-    for product in products:
+    for Product in Product:
         result.append(
             {   
-              product
+              Product
             }
         )
     return {"data": result}
 
 #Lấy tất cả sản phẩm theo loại
-@router.get("/products/all/category", summary="Lấy sản phẩm theo loại")
+@router.get("/Product/All/Category", summary="Lấy sản phẩm theo loại")
 def get_all_products_with_category(
-    categoryId: str = Query(None, description="Lọc sản phẩm theo loại"),
+    CategoryID: str = Query(None),
     db: Session = Depends(get_database_session),
 ):
     query = (
         db.query(ProductSchema)
     )
 
-    if categoryId:
-        query = query.filter(ProductSchema.categoryId == categoryId)
+    if CategoryID:
+        query = query.filter(ProductSchema.CategoryID == CategoryID)
 
-    products = query.all()
+    Product = query.all()
     result = []
-    for product in products:
+    for Product in Product:
         result.append(
             {   
-              product
+              Product
             }
         )
     return {"data": result}
 
 #Lấy tất cả sản phẩm thuộc loại được chọn và còn hàng
-@router.get("/products/all/category/instock", summary="Lấy sản phẩm theo loại và còn hàng")
+@router.get("/Product/All/ProductCategory/Instock", summary="Lấy sản phẩm theo loại và còn hàng")
 def get_all_products_with_category(
-    categoryId: str = Query(None, description="Lọc sản phẩm theo loại và còn hàng"),
+    CategoryID: str = Query(None),
     db: Session = Depends(get_database_session),
 ):
     query = (
         db.query(ProductSchema)
-        .filter(ProductSchema.quantity > 0, ProductSchema.hasBeenDeleted == 0)
+        .filter(ProductSchema.ReorderQuantity > 0, ProductSchema.HasBeenDeleted == 0)
     )
 #dadad
-    if categoryId:
-        query = query.filter(ProductSchema.categoryId == categoryId)
+    if CategoryID:
+        query = query.filter(ProductSchema.CategoryID == CategoryID)
 
-    products = query.all()
+    Product = query.all()
     result = []
-    for product in products:
+    for Product in Product:
         result.append(
             {   
-              product
+              Product
             }
         )
     return {"data": result}
