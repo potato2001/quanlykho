@@ -40,6 +40,32 @@ LOCK TABLES `Category` WRITE;
 UNLOCK TABLES;
 
 --
+-- Table structure for table `Customer`
+--
+
+DROP TABLE IF EXISTS `Customer`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `Customer` (
+  `CustomerID` int NOT NULL,
+  `CustomerName` varchar(45) DEFAULT NULL,
+  `CustomerAddress` varchar(45) DEFAULT NULL,
+  `CustomerPhone` varchar(45) DEFAULT NULL,
+  `CustomerEmail` varchar(45) DEFAULT NULL,
+  PRIMARY KEY (`CustomerID`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `Customer`
+--
+
+LOCK TABLES `Customer` WRITE;
+/*!40000 ALTER TABLE `Customer` DISABLE KEYS */;
+/*!40000 ALTER TABLE `Customer` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
 -- Table structure for table `Inventory`
 --
 
@@ -50,10 +76,13 @@ CREATE TABLE `Inventory` (
   `InventoryID` int NOT NULL AUTO_INCREMENT,
   `ProductID` varchar(45) DEFAULT NULL,
   `QuantityAvailable` varchar(45) DEFAULT NULL,
-  PRIMARY KEY (`InventoryID`),
+  `Product_ID` int NOT NULL,
+  PRIMARY KEY (`InventoryID`,`Product_ID`),
   UNIQUE KEY `userName` (`QuantityAvailable`),
   UNIQUE KEY `userPassword` (`ProductID`),
-  KEY `ix_User_userId` (`InventoryID`)
+  KEY `ix_User_userId` (`InventoryID`),
+  KEY `fk_Inventory_Product_idx` (`Product_ID`),
+  CONSTRAINT `fk_Inventory_Product` FOREIGN KEY (`Product_ID`) REFERENCES `Product` (`ID`)
 ) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb3;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -78,7 +107,11 @@ CREATE TABLE `InventoryHistory` (
   `ProductID` varchar(45) DEFAULT NULL,
   `QuantityChange` int DEFAULT NULL,
   `ChangeDate` varchar(45) DEFAULT NULL,
-  PRIMARY KEY (`HistoryID`)
+  `Product_ID` int NOT NULL,
+  `Product_Category_CategoryID` int NOT NULL,
+  PRIMARY KEY (`HistoryID`,`Product_ID`,`Product_Category_CategoryID`),
+  KEY `fk_InventoryHistory_Product1_idx` (`Product_ID`,`Product_Category_CategoryID`),
+  CONSTRAINT `fk_InventoryHistory_Product1` FOREIGN KEY (`Product_ID`, `Product_Category_CategoryID`) REFERENCES `Product` (`ID`, `Category_CategoryID`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -129,7 +162,13 @@ CREATE TABLE `Order` (
   `ProductQuantity` int DEFAULT NULL,
   `OrderDate` varchar(45) DEFAULT NULL,
   `Status` int DEFAULT NULL,
-  PRIMARY KEY (`OrderID`)
+  `Provider_ProviderID` int NOT NULL,
+  `Customer_CustomerID` int NOT NULL,
+  PRIMARY KEY (`OrderID`,`Provider_ProviderID`,`Customer_CustomerID`),
+  KEY `fk_Order_Provider1_idx` (`Provider_ProviderID`),
+  KEY `fk_Order_Customer1_idx` (`Customer_CustomerID`),
+  CONSTRAINT `fk_Order_Customer1` FOREIGN KEY (`Customer_CustomerID`) REFERENCES `mydb`.`Customer` (`CustomerID`),
+  CONSTRAINT `fk_Order_Provider1` FOREIGN KEY (`Provider_ProviderID`) REFERENCES `Provider` (`ProviderID`)
 ) ENGINE=InnoDB AUTO_INCREMENT=10 DEFAULT CHARSET=utf8mb3;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -155,7 +194,11 @@ CREATE TABLE `OrderDetail` (
   `ProductID` varchar(45) DEFAULT NULL,
   `OrderQuantity` int DEFAULT NULL,
   `UnitPrice` varchar(45) DEFAULT NULL,
-  PRIMARY KEY (`OrderDetailID`)
+  `Order_OrderID` int NOT NULL,
+  `Order_Provider_ProviderID` int NOT NULL,
+  PRIMARY KEY (`OrderDetailID`,`Order_OrderID`,`Order_Provider_ProviderID`),
+  KEY `fk_OrderDetail_Order1_idx` (`Order_OrderID`,`Order_Provider_ProviderID`),
+  CONSTRAINT `fk_OrderDetail_Order1` FOREIGN KEY (`Order_OrderID`, `Order_Provider_ProviderID`) REFERENCES `Order` (`OrderID`, `Provider_ProviderID`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -189,7 +232,10 @@ CREATE TABLE `Product` (
   `UnitPrice` double DEFAULT NULL,
   `Status` varchar(45) DEFAULT NULL,
   `HasBeenDeleted` varchar(10) DEFAULT NULL,
-  PRIMARY KEY (`ID`)
+  `Category_CategoryID` int NOT NULL,
+  PRIMARY KEY (`ID`,`Category_CategoryID`),
+  KEY `fk_Product_Category1_idx` (`Category_CategoryID`),
+  CONSTRAINT `fk_Product_Category1` FOREIGN KEY (`Category_CategoryID`) REFERENCES `Category` (`CategoryID`)
 ) ENGINE=InnoDB AUTO_INCREMENT=11 DEFAULT CHARSET=utf8mb3;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -264,4 +310,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2024-02-29 21:25:14
+-- Dump completed on 2024-03-01 14:17:58

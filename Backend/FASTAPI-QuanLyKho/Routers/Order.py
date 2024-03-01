@@ -10,7 +10,7 @@ from auth.auth_handler import signJWT,decodeJWT,refresh_access_token
 import schema
 from database import SessionLocal, engine
 import model
-from model import OrderSchema,ProductSchema
+from model import OrderSchema,ProductSchema,CustomerSchema
 
 
 router = APIRouter()  
@@ -34,17 +34,17 @@ async def create_order(
     Status:str=Form(...),
 ):
     Product = db.query(ProductSchema).filter_by(ProductID=ProductID).first()
-    if(Product.ReorderQuantity==0):
-        Product.status == 0
+    if(Product.ProductQuantity==0):
+        Product.Status == 0
         db.commit()
         return JSONResponse(status_code=400, content={"message": "Sản phẩm đã hết"})
-    if(ProductQuantity<Product.ReorderQuantity):
-        return JSONResponse(status_code=400, content={"message": f"Sản phẩm tồn kho còn {Product.ReorderQuantity}"})
+    if(ProductQuantity<Product.ProductQuantity):
+        return JSONResponse(status_code=400, content={"message": f"Sản phẩm tồn kho còn {Product.ProductQuantity}"})
     OrderSchema = OrderSchema(ProductID = ProductID, OrderDate = datetime.today().strftime("%H:%M ,%d-%m-%Y"), Status=0, ProductQuantity=ProductQuantity)
-    product.quantity -= quantityProduct
-    db.add(ordersSchema)
+    Product.ProductQuantity -= ProductQuantity
+    db.add(OrderSchema)
     db.commit()
-    db.refresh(ordersSchema)
+    db.refresh(OrderSchema)
     return {
         "data:" "Tạo đơn hàng thành công!"
     }
@@ -53,60 +53,53 @@ async def create_order(
 @router.put("/update_order",dependencies=[Depends(JWTBearer())], summary="Sửa đơn hàng")
 async def update_order(
     db: Session = Depends(get_database_session),
-    productId: str = Form(...),
-    customerName: str = Form(...),
-    phoneNumber:str=Form(...),
-    address:str=Form(...),
-    quantityProduct:int=Form(...)
+    ProductID: str = Form(...),
+    ProductQuantity:int=Form(...)
 ):
-    order_exists = db.query(exists().where(OrdersSchema.productId == productId)).scalar()
-    order = db.query(OrdersSchema).get(productId)
-    if order_exists:
-        print(order)
-        order.productId = productId
-        order.customerName = customerName
-        order.phoneNumber = phoneNumber
-        order.address = address
-        order.quantityProduct = quantityProduct
+    Order_exists = db.query(exists().where(OrderSchema.ProductID == ProductID)).scalar()
+    Order = db.query(OrderSchema).get(ProductID)
+    if Order_exists:
+        print(Order)
+        Order.productId = ProductID
+        Order.ProductQuantity = ProductQuantity
         db.commit()
-        db.refresh(order)
+        db.refresh(Order)
         return {
             "data": "Thông tin đơn hàng đã được cập nhật!"
         }
     else:
         return JSONResponse(status_code=400, content={"message": "Không có thông tin đơn hàng!"})
 
-# #Xóa sản phẩm
-# @router.delete("/delete_product",dependencies=[Depends(JWTBearer())], summary="Xóa sản phẩm")
-# async def delete_product(
-#     db: Session = Depends(get_database_session),
-#     Id: int = Form(...)
-# ):
-#     product_exists = db.query(exists().where(ProductSchema.Id == Id)).scalar()
-#     if product_exists:
-#         product = db.query(ProductSchema).get(Id)
-#         product.hasBeenDeleted=1
-#         # db.delete(product)
-#         db.commit()
-#         db.refresh(product)
+#Xóa đơn hàng
+@router.delete("/delete_order",dependencies=[Depends(JWTBearer())], summary="Xóa đơn hàng")
+async def delete_order(
+    db: Session = Depends(get_database_session),
+    OrderID: int = Form(...)
+):
+    Order_exists = db.query(exists().where(OrderSchema.OrderID == OrderID)).scalar()
+    if Order_exists:
+        Order = db.query(OrderSchema).get(OrderID)
+        Order.hasBeenDeleted=1
+        db.commit()
+        db.refresh(Order)
 
-#         return{
-#          "data": "Xóa sản phẩm thành công!"
-#         }
-#     else:
-#         return JSONResponse(status_code=400, content={"message": "Không tồn tại sản phẩm!"})
+        return{
+         "data": "Xóa sản phẩm thành công!"
+        }
+    else:
+        return JSONResponse(status_code=400, content={"message": "Không tồn tại đơn hàng!"})
 
 #Lấy đơn hàng
 @router.get("/order/{orderId}", summary="Lấy đơn hàng theo mã")
-def get_order_by_id(
+def get_order_by_OrderID(
     db: Session = Depends(get_database_session),
-    orderId= int
+    OrderID= int
+    
 ):
-    orders = (
+    Order = (
         db.query(
-            ProductSchema.productName,
-            ProductSchema.serial,
-            ProductSchema.unitPrice*OrdersSchema.quantityProduct,
+            OrderSchema.OrderID,
+            CustomerSc
             OrdersSchema
         )
         .join(ProductSchema, ProductSchema.productId == OrdersSchema.productId)

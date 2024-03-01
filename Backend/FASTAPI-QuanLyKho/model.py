@@ -11,14 +11,14 @@ class ProductSchema(Base):
     __tablename__= "Product"
     #ID = Column(Integer, primary_key=True, index=True)
     ProductID = Column(String)
-    ProductCode = Column(String)
+    #ProductCode = Column(String)
     SupplierID = Column(String)
     ProductName = Column(String(100))
-    ProductCategory = Column(String(45))
+    #ProductCategory = Column(String(45))
     ProductBrand = Column(String(10))
     ProductSerial = Column(String(10), unique=True)
     ProductDescription = Column(String)
-    ReorderQuantity = Column(Integer)
+    ProductQuantity = Column(Integer)
     UnitPrice = Column(Integer)
     Status=Column(String)
     HasBeenDeleted=Column(String)
@@ -90,3 +90,12 @@ class InvoiceSchema(Base):
     UserID = Column(String)
     OrderDetailID = Column(String)
     TotalCost = (String)
+
+#Khách hàng
+class CustomerSchema(Base):
+    __tablename__ = "Customer"
+    CustomerID = Column(Integer, primary_key=True, index=True)
+    CustomerName = Column(String)
+    CustomerAddress = Column(String)
+    CustomerPhone = Column(String)
+    CustomerEmail = Column(String)
