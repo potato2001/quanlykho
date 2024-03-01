@@ -31,5 +31,5 @@ async def get_user(
     user = decodeJWT(authorization.split()[1])
     userID = user.get("user_id")
 
-    user = db.query(UserSchema).filter_by(userName=userID).first()
+    user = db.query(UserSchema).filter_by(UserName=userID).first()
     return {"user": user}
