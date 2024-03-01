@@ -12,7 +12,7 @@ from auth.auth_bearer import JWTBearer
 from auth.auth_handler import signJWT,decodeJWT
 from model import UserSchema
 from database import SessionLocal, engine
-from Routers import login,user,products,category,suppliers,orders
+from Routers import login,user,category
 import uuid
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -35,11 +35,11 @@ app.include_router(login.router, tags=['Login Controller'], prefix='')
 app.include_router(user.router, tags=['User Controller'], prefix='')
 
 #Sản phẩm
-app.include_router(products.router, tags=['Products Controller'], prefix='')
+# app.include_router(products.router, tags=['Products Controller'], prefix='')
 app.include_router(category.router, tags=['Category Controller'], prefix='')
 
 #Nhà cung cấp
-app.include_router(suppliers.router, tags=['Suppiler Controller'], prefix='')
+# app.include_router(suppliers.router, tags=['Suppiler Controller'], prefix='')
 # app.include_router(courseClass.router, tags=['Class Controller'], prefix='')
 # app.include_router(exam.router, tags=['Exam Controller'], prefix='')
 # app.include_router(studentExam.router, tags=['Student Exam Controller'], prefix='')
@@ -47,5 +47,5 @@ app.include_router(suppliers.router, tags=['Suppiler Controller'], prefix='')
 # app.include_router(bill.router, tags=['Bill Controller'], prefix='')
 
 # Đơn hàng
-app.include_router(orders.router, tags=['Orders Controller'], prefix='')
+# app.include_router(orders.router, tags=['Orders Controller'], prefix='')
 

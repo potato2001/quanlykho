@@ -7,7 +7,6 @@ from datetime import date
 from auth.auth_bearer import JWTBearer
 from auth.auth_handler import decodeJWT
 from model import UserSchema
-import schema
 from database import SessionLocal, engine
 import model
 

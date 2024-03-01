@@ -1,6 +1,6 @@
 from typing import Text
 from sqlalchemy import Column,Date,BLOB,ForeignKey
-from sqlalchemy.types import String, Integer, Text, Float,Double
+from sqlalchemy.types import String, Integer, Text, Float
 
 from database import Base
 from sqlalchemy.orm import  relationship
@@ -9,7 +9,7 @@ from sqlalchemy.orm import  relationship
 #Sản phẩm
 class ProductSchema(Base):
     __tablename__= "Product"
-    #ID = Column(Integer, primary_key=True, index=True)
+    ID = Column(Integer, primary_key=True, index=True)
     ProductID = Column(String)
     #ProductCode = Column(String)
     SupplierID = Column(String)
@@ -68,7 +68,7 @@ class OrderDetailSchema(Base):
     OrderQuantity = Column(Integer)
     UnitPrice = Column(String)
 
-#Người dùng
+# Người dùng
 class UserSchema(Base):
     __tablename__= "User"
     UserID = Column(Integer, primary_key=True, index=True)
@@ -87,7 +87,7 @@ class CategorySchema(Base):
 class InvoiceSchema(Base):
     __tablename__ = "Invoice"
     InvoiceID = Column(Integer, primary_key=True, index=True)
-    UserID = Column(String)
+    UserID = Column(Integer)
     OrderDetailID = Column(String)
     TotalCost = (String)
 
