@@ -7,7 +7,6 @@ from fastapi.encoders import jsonable_encoder
 from datetime import date
 from auth.auth_bearer import JWTBearer
 from auth.auth_handler import signJWT,decodeJWT,refresh_access_token
-import schema
 from database import SessionLocal, engine
 import model
 from model import ProductSchema
