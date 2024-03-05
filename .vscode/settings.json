@@ -1,0 +1,6 @@
+{
+    "python.analysis.extraPaths": [
+        "./Backend/FASTAPI-QuanLyKho",
+        "./Backend/FASTAPI-QuanLyKho/Controller"
+    ]
+}

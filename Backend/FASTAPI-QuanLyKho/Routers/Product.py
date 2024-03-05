@@ -11,7 +11,7 @@ from database import SessionLocal, engine
 import model
 from model import Product
 from schema import ProductSchema
-
+from typing import List
 router = APIRouter()  
 model.Base.metadata.create_all(bind=engine)
 
@@ -83,6 +83,82 @@ async def update_product(
     db.refresh(existing_product)
 
     return {"data": "Thông tin sản phẩm đã được cập nhật thành công!"}
+
+@router.post("/create_products", summary="Tạo nhiều sản phẩm")
+async def create_products(
+    products: List[ProductSchema],
+    db: Session = Depends(get_database_session),
+):
+    # List to store any duplicate product IDs
+    duplicates = []
+
+    for productSchema in products:
+        product_exists = db.query(exists().where(Product.ProductSerial == productSchema.ProductSerial)).scalar()
+        if product_exists:
+            duplicates.append(productSchema.ProductID)
+        else:
+            # Create a new ProductSchema instance and add it to the database
+            new_product = Product(
+                ProductID=productSchema.ProductID,
+                ProductCode=productSchema.ProductCode,
+                ProviderID=productSchema.ProviderID,
+                ProductName=productSchema.ProductName,
+                ProductBrand=productSchema.ProductBrand,
+                ProductSerial=productSchema.ProductSerial,
+                ProductDescription=productSchema.ProductDescription,
+                ReorderQuantity=productSchema.ReorderQuantity,
+                UnitPrice=productSchema.UnitPrice,
+                Status=productSchema.Status,
+                HasBeenDeleted=0,
+                Category_CategoryID=productSchema.Category_CategoryID
+            )
+            db.add(new_product)
+
+    db.commit()
+
+    if duplicates:
+        return {"data": f"Sản phẩm đã tồn tại: {', '.join(duplicates)}"}
+
+    return {"data": "Tạo sản phẩm thành công"}
+@router.put("/update_products", summary="Cập nhật nhiều sản phẩm")
+async def update_products(
+    products_update: List[c],
+    db: Session = Depends(get_database_session),
+):
+    duplicates = []
+
+    for product_update in products_update:
+        # Check if the product with the given ProductID exists
+        existing_product = db.query(Product).filter(Product.ProductID == product_update.ProductID).first()
+        if not existing_product:
+            raise HTTPException(status_code=404, detail=f"Sản phẩm có ID {product_update.ProductID} không tồn tại!")
+
+        # Check for duplicate ProductID
+        if product_update.ProductID != existing_product.ProductID:
+            product_exists = db.query(exists().where(Product.ProductID == product_update.ProductID)).scalar()
+            if product_exists:
+                duplicates.append(product_update.ProductID)
+
+        # Update the product fields with the new values
+        existing_product.ProductCode = product_update.ProductCode
+        existing_product.ProviderID = product_update.ProviderID
+        existing_product.ProductName = product_update.ProductName
+        existing_product.ProductBrand = product_update.ProductBrand
+        existing_product.ProductSerial = product_update.ProductSerial
+        existing_product.ProductDescription = product_update.ProductDescription
+        existing_product.ReorderQuantity = product_update.ReorderQuantity
+        existing_product.UnitPrice = product_update.UnitPrice
+        existing_product.Status = product_update.Status
+        existing_product.Category_CategoryID = product_update.Category_CategoryID
+
+    if duplicates:
+        return {"data": f"Sản phẩm đã tồn tại: {', '.join(duplicates)}"}
+
+    # Commit the changes to the database
+    db.commit()
+
+    return {"data": "Thông tin các sản phẩm đã được cập nhật thành công!"}
+
 # @router.put("/update_product",dependencies=[Depends(JWTBearer())], summary="Sửa sản phẩm")
 # async def update_product(
 #     db: Session = Depends(get_database_session),
