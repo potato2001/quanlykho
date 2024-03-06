@@ -7,11 +7,12 @@ from fastapi.encoders import jsonable_encoder
 from datetime import date
 from auth.auth_bearer import JWTBearer
 from auth.auth_handler import signJWT,decodeJWT,refresh_access_token
-from model import Category
+from model import CategoryModel
 from database import SessionLocal, engine
 from schema import CategorySchema,MultipleCategoriesSchema,CategoryUpdateSchema
 import model
 from typing import List
+import openpyxl
 
 router = APIRouter()  
 model.Base.metadata.create_all(bind=engine)
@@ -30,12 +31,12 @@ async def create_category(
     categorySchema: CategorySchema,
     db: Session = Depends(get_database_session),
 ):
-    category_exists = db.query(exists().where(Category.CategoryName == categorySchema.CategoryName)).scalar()
+    category_exists = db.query(exists().where(CategoryModel.CategoryName == categorySchema.CategoryName)).scalar()
     if category_exists:
         return {"data": "Sản phẩm đã tồn tại!"}
 
     # Create a new ProductSchema instance and add it to the database
-    new_category = Category(
+    new_category = CategoryModel(
         CategoryName=categorySchema.CategoryName,
         HasBeenDeleted=categorySchema.HasBeenDeleted,
     )
@@ -53,7 +54,7 @@ async def update_product(
     db: Session = Depends(get_database_session),
 ):
     # Check if the product with the given ProductID exists
-    existing_category = db.query(Category).filter(Category.CategoryID == category_id).first()
+    existing_category = db.query(CategoryModel).filter(CategoryModel.CategoryID == category_id).first()
     if not existing_category:
         raise HTTPException(status_code=404, detail="Loại sản phẩm không tồn tại!")
 
@@ -75,12 +76,12 @@ async def create_categories(
     duplicates = []
 
     for category in categories_schema.categories:
-        category_exists = db.query(exists().where(Category.CategoryName == category.CategoryName)).scalar()
+        category_exists = db.query(exists().where(CategoryModel.CategoryName == category.CategoryName)).scalar()
         if category_exists:
             duplicates.append(category.CategoryName)
         else:
-            # Create a new Category instance and add it to the database
-            new_category = Category(
+            # Create a new CategoryModel instance and add it to the database
+            new_category = CategoryModel(
                 CategoryName=category.CategoryName,
                 HasBeenDeleted=category.HasBeenDeleted,
             )
@@ -102,13 +103,13 @@ async def update_categories(
 
     for category_update in categories_update:
         # Check if the category with the given CategoryID exists
-        existing_category = db.query(Category).filter(Category.CategoryID == category_update.CategoryID).first()
+        existing_category = db.query(CategoryModel).filter(CategoryModel.CategoryID == category_update.CategoryID).first()
         if not existing_category:
             raise HTTPException(status_code=404, detail=f"Loại sản phẩm có ID {category_update.CategoryID} không tồn tại!")
 
         # Check for duplicate CategoryName
         if category_update.CategoryName != existing_category.CategoryName:
-            category_exists = db.query(exists().where(Category.CategoryName == category_update.CategoryName)).scalar()
+            category_exists = db.query(exists().where(CategoryModel.CategoryName == category_update.CategoryName)).scalar()
             if category_exists:
                 duplicates.append(category_update.CategoryName)
 
@@ -127,7 +128,7 @@ async def update_categories(
 @router.delete("/delete_category/{category_id}", summary="Xóa loại sản phẩm")
 async def delete_category(category_id: str, db: Session = Depends(get_database_session)):
     # Check if the category with the given CategoryID exists
-    existing_category = db.query(Category).filter(Category.CategoryID == category_id).first()
+    existing_category = db.query(CategoryModel).filter(CategoryModel.CategoryID == category_id).first()
     if not existing_category:
         raise HTTPException(status_code=404, detail=f"Loại sản phẩm có ID {category_id} không tồn tại!")
 
@@ -139,22 +140,50 @@ async def delete_category(category_id: str, db: Session = Depends(get_database_s
 
     return {"data": "Loại sản phẩm đã được xóa thành công!"}
 
+@router.post("/create_categories_from_excel", summary="Create categories from Excel")
+async def create_categories_from_excel(
+    excel_file: bytes,  # Assuming you're receiving the Excel file as bytes
+    db: Session = Depends(get_database_session),
+):
+    # Load Excel file
+    try:
+        wb = openpyxl.load_workbook(filename=excel_file)
+    except Exception as e:
+        raise HTTPException(status_code=400, detail="Failed to load Excel file")
+
+    ws = wb.active
+
+    for row in ws.iter_rows(min_row=2): 
+        category_name = row[0].value  
+
+        category_exists = db.query(exists().where(CategoryModel.CategoryName == category_name)).scalar()
+        if category_exists:
+            continue 
+        new_category = CategoryModel(
+            CategoryName=category_name,
+            HasBeenDeleted=False,  
+        )
+        db.add(new_category)
+
+    db.commit()
+
+    return {"message": "Categories created from Excel"}
+
 #Lấy tất cả loại sản phẩm
 @router.get("/category", summary="Lấy tất cả loại sản phẩm")
 def get_category(
     db: Session = Depends(get_database_session),
 ):
-    Category = (
-    db.query(CategorySchema)
+    categories = (
+    db.query(CategoryModel)
     .all()
     )
-    print(Category)
+    print(categories)
     result = []
-    for Category in Category:
+    for category in categories:
         result.append(
             {   
-              Category
+              category
             }
         )
     return {"data": result}
-

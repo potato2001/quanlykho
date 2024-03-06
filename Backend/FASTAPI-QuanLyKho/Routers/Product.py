@@ -9,7 +9,7 @@ from auth.auth_bearer import JWTBearer
 from auth.auth_handler import signJWT,decodeJWT,refresh_access_token
 from database import SessionLocal, engine
 import model
-from model import Product
+from model import ProductModel
 from schema import ProductSchema
 from typing import List
 router = APIRouter()  
@@ -28,12 +28,12 @@ async def create_product(
     productSchema: ProductSchema,
     db: Session = Depends(get_database_session),
 ):
-    product_exists = db.query(exists().where(Product.ProductID == productSchema.ProductID)).scalar()
+    product_exists = db.query(exists().where(ProductModel.ProductID == productSchema.ProductID)).scalar()
     if product_exists:
         return {"data": "Sản phẩm đã tồn tại!"}
 
     # Create a new ProductSchema instance and add it to the database
-    new_product = Product(
+    new_product = ProductModel(
         ProductID=productSchema.ProductID,
         ProductCode=productSchema.ProductCode,
         ProviderID=productSchema.ProviderID,
@@ -61,7 +61,7 @@ async def update_product(
     db: Session = Depends(get_database_session),
 ):
     # Check if the product with the given ProductID exists
-    existing_product = db.query(Product).filter(Product.ID == product_id).first()
+    existing_product = db.query(ProductModel).filter(ProductModel.ProductID == product_id).first()
     if not existing_product:
         raise HTTPException(status_code=404, detail="Sản phẩm không tồn tại!")
 
@@ -93,12 +93,12 @@ async def create_products(
     duplicates = []
 
     for productSchema in products:
-        product_exists = db.query(exists().where(Product.ProductSerial == productSchema.ProductSerial)).scalar()
+        product_exists = db.query(exists().where(ProductModel.ProductSerial == productSchema.ProductSerial)).scalar()
         if product_exists:
             duplicates.append(productSchema.ProductID)
         else:
             # Create a new ProductSchema instance and add it to the database
-            new_product = Product(
+            new_product = ProductModel(
                 ProductID=productSchema.ProductID,
                 ProductCode=productSchema.ProductCode,
                 ProviderID=productSchema.ProviderID,
@@ -122,20 +122,20 @@ async def create_products(
     return {"data": "Tạo sản phẩm thành công"}
 @router.put("/update_products", summary="Cập nhật nhiều sản phẩm")
 async def update_products(
-    products_update: List[c],
+    products_update: List[ProductSchema],
     db: Session = Depends(get_database_session),
 ):
     duplicates = []
 
     for product_update in products_update:
         # Check if the product with the given ProductID exists
-        existing_product = db.query(Product).filter(Product.ProductID == product_update.ProductID).first()
+        existing_product = db.query(ProductModel).filter(ProductModel.ProductID == product_update.ProductID).first()
         if not existing_product:
             raise HTTPException(status_code=404, detail=f"Sản phẩm có ID {product_update.ProductID} không tồn tại!")
 
         # Check for duplicate ProductID
         if product_update.ProductID != existing_product.ProductID:
-            product_exists = db.query(exists().where(Product.ProductID == product_update.ProductID)).scalar()
+            product_exists = db.query(exists().where(ProductModel.ProductID == product_update.ProductID)).scalar()
             if product_exists:
                 duplicates.append(product_update.ProductID)
 
@@ -212,26 +212,26 @@ async def update_products(
 #     else:
 #         return JSONResponse(status_code=400, content={"message": "Không tồn tại sản phẩm!"})
 
-# #Lấy sản phẩm theo mã sản phẩm
-# @router.get("/Product/{ProductID}", summary="Lấy sản phẩm theo mã")
-# def get_courses_with_subject_info(
-#     db: Session = Depends(get_database_session),
-#     ProductID = str
-# ):
-#     Product = (
-#     db.query(ProductSchema)  # Specify the model (ProductSchema) to query
-#     .filter(ProductSchema.ProductID == ProductID)
-#     .all()
-#     )
-#     print(Product)
-#     result = []
-#     for product in Product:
-#         result.append(
-#             {   
-#               product
-#             }
-#         )
-#     return {"data": result}
+#Lấy sản phẩm theo mã sản phẩm
+@router.get("/Product/{productID}", summary="Lấy sản phẩm theo mã")
+def get_courses_with_subject_info(
+    db: Session = Depends(get_database_session),
+    productID = int
+):
+    products = (
+    db.query(ProductModel)  # Specify the model (ProductSchema) to query
+    .filter(ProductModel.ProductID == productID)
+    .all()
+    )
+    print(products)
+    result = []
+    for product in products:
+        result.append(
+            {   
+              product
+            }
+        )
+    return {"data": result}
 
 # #Lấy tất cả sản phẩm
 # @router.get("/Product", summary="Lấy tất cả sản phẩm")

@@ -7,22 +7,18 @@ from sqlalchemy.orm import  relationship
 
 
 #Sản phẩm
-class Product(Base):
+class ProductModel(Base):
     __tablename__= "Product"
-    ID = Column(Integer, primary_key=True, index=True)
-    ProductID = Column(String)
-    ProductCode = Column(String)
-    ProviderID = Column(String)
+    ProductID = Column(Integer, primary_key=True, index=True)
     ProductName = Column(String(100))
-    ProductCategory = Column(String(45))
     ProductBrand = Column(String(10))
     ProductSerial = Column(String(10), unique=True)
     ProductDescription = Column(String)
-    ReorderQuantity = Column(Integer)
     UnitPrice = Column(Integer)
     Status=Column(String)
     HasBeenDeleted=Column(String)
     Category_CategoryID=Column(Integer)
+    Provider_ProviderID=Column(Integer)
 
 
 #Nhà cung cấp
@@ -78,7 +74,7 @@ class UserSchema(Base):
     Role = Column(Integer)
 
 #Phân loại hàng
-class Category(Base):
+class CategoryModel(Base):
     __tablename__= "Category"
     CategoryID = Column(Integer,primary_key=True, index=True)
     CategoryName = Column(String)
