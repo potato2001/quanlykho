@@ -12,7 +12,7 @@ from auth.auth_bearer import JWTBearer
 from auth.auth_handler import signJWT,decodeJWT
 from model import UserSchema
 from database import SessionLocal, engine
-from Routers import login,user,Category,Product
+from Routers import login,user,category,Product
 
 import uuid
 from fastapi.middleware.cors import CORSMiddleware
@@ -38,7 +38,7 @@ app.include_router(user.router, tags=['User Controller'], prefix='')
 #Sản phẩm
 
 # app.include_router(products.router, tags=['Products Controller'], prefix='')
-app.include_router(Category.router, tags=['Category Controller'], prefix='')
+app.include_router(category.router, tags=['Category Controller'], prefix='')
 
 #Nhà cung cấp
 # app.include_router(suppliers.router, tags=['Suppiler Controller'], prefix='')
