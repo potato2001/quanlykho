@@ -1,4 +1,4 @@
-from fastapi import Depends, FastAPI, Request, Form,status,Header,APIRouter,HTTPException
+from fastapi import Depends, FastAPI, Request, Form,status,Header,APIRouter,HTTPException,File, UploadFile
 from fastapi.responses import HTMLResponse, JSONResponse
 from sqlalchemy import exists
 import base64
@@ -12,7 +12,8 @@ from database import SessionLocal, engine
 from schema import CategorySchema,MultipleCategoriesSchema,CategoryUpdateSchema
 import model
 from typing import List
-import openpyxl
+
+import csv
 
 router = APIRouter()  
 model.Base.metadata.create_all(bind=engine)
@@ -139,36 +140,42 @@ async def delete_category(category_id: str, db: Session = Depends(get_database_s
     db.commit()
 
     return {"data": "Loại sản phẩm đã được xóa thành công!"}
-
-@router.post("/create_categories_from_excel", summary="Create categories from Excel")
-async def create_categories_from_excel(
-    excel_file: bytes,  # Assuming you're receiving the Excel file as bytes
+@router.post("/create_categories_from_csv", summary="Create categories from CSV")
+async def create_categories_from_csv(
+    csv_file: UploadFile = File(...),  # Accept CSV file uploads
     db: Session = Depends(get_database_session),
 ):
-    # Load Excel file
+    if not csv_file.filename.endswith(".csv"):
+        raise HTTPException(status_code=400, detail="Only .csv files are allowed")
+
     try:
-        wb = openpyxl.load_workbook(filename=excel_file)
+        contents = await csv_file.read()  # Read the contents of the uploaded file
+        decoded_contents = contents.decode("utf-8")  # Decode bytes to string
+        lines = decoded_contents.split("\n")  # Split contents into lines
+        reader = csv.reader(lines, delimiter=";")  # Create CSV reader with ';' delimiter
     except Exception as e:
-        raise HTTPException(status_code=400, detail="Failed to load Excel file")
+        raise HTTPException(status_code=400, detail="Failed to read CSV file")
+    next(reader)
+    for row in reader:
+        if len(row) < 1:  
+            continue
+        
+        category_name = row[0].strip()  
+        category_hasBeenDelete = row[1].strip()  
 
-    ws = wb.active
-
-    for row in ws.iter_rows(min_row=2): 
-        category_name = row[0].value  
-
+        
         category_exists = db.query(exists().where(CategoryModel.CategoryName == category_name)).scalar()
         if category_exists:
-            continue 
+            continue
+        
         new_category = CategoryModel(
             CategoryName=category_name,
-            HasBeenDeleted=False,  
+            HasBeenDeleted=category_hasBeenDelete,  
         )
         db.add(new_category)
 
     db.commit()
-
-    return {"message": "Categories created from Excel"}
-
+    return {"message": "Categories created from CSV"}
 #Lấy tất cả loại sản phẩm
 @router.get("/category", summary="Lấy tất cả loại sản phẩm")
 def get_category(
