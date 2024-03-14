@@ -9,7 +9,7 @@ from auth.auth_bearer import JWTBearer
 from auth.auth_handler import signJWT,decodeJWT,refresh_access_token
 from database import SessionLocal, engine
 import model
-from model import ProductModel,InventoryModel
+from model import ProviderModel
 from schema import ProductSchema
 from typing import List
 router = APIRouter()  
@@ -22,62 +22,57 @@ def get_database_session():
         yield db
     finally:
         db.close()
-#Tạo sản phẩm
+#Tạo thông tin nhà cung cấp
 @router.post("/create_product", summary="Tạo sản phẩm")
 async def create_product(
-    productSchema: ProductSchema,
+    providerSchema: ProviderModel,
     db: Session = Depends(get_database_session),
 ):
-    product_exists = db.query(exists().where(ProductModel.ProductID == productSchema.ProductID)).scalar()
-    if product_exists:
-        return {"data": "Sản phẩm đã tồn tại!"}
+    provider_exists = db.query(exists().where(ProviderModel.ProviderID == providerSchema.ProviderID)).scalar()
+    if provider_exists:
+        return {"data": "Nhà cung cấp đã tồn tại!"}
 
-    # Create a new ProductSchema instance and add it to the database
-    new_product = ProductModel(
-        ProductID=productSchema.ProductID,
-        ProductName=productSchema.ProductName,
-        ProductBrand=productSchema.ProductBrand,
-        ProductSerial=productSchema.ProductSerial,
-        ProductDescription=productSchema.ProductDescription,
-        UnitPrice=productSchema.UnitPrice,
-        Status=productSchema.Status,
+    new_provider = ProviderModel(
+        ProviderID=providerSchema.ProviderID,
+        ProviderName=providerSchema.ProviderName,
+        ProviderAddress=providerSchema.ProviderAddress,
+        ProviderPhone=providerSchema.ProviderPhone,
+        ProviderEmail=providerSchema.ProviderEmail,
         HasBeenDeleted=0,
-        Category_CategoryID=productSchema.Category_CategoryID
 
     )
-    new_invetory=InventoryModel()
+    new_provider=ProviderModel()
 
-    db.add(new_product)
+    db.add(new_provider)
     db.commit()
-    db.refresh(new_product)
-    return productSchema
+    db.refresh(new_provider)
+    return providerSchema
+
 #Sửa thông tin sản phẩm
-@router.put("/update_product/{product_id}", summary="Cập nhật thông tin sản phẩm")
-async def update_product(
-    product_id: str,
-    product_update: ProductSchema,
+@router.put("/update_provider/{ProviderID}", summary="Cập nhật thông tin nhà cung cấp")
+async def update_provider(
+    ProviderID: str,
+    provider_update: ProviderSchema,
     db: Session = Depends(get_database_session),
 ):
     # Check if the product with the given ProductID exists
-    existing_product = db.query(ProductModel).filter(ProductModel.ProductID == product_id).first()
-    if not existing_product:
-        raise HTTPException(status_code=404, detail="Sản phẩm không tồn tại!")
+    existing_provider = db.query(ProviderModel).filter(ProviderModel.ProviderID == ProviderID).first()
+    if not existing_provider:
+        raise HTTPException(status_code=404, detail="Nhà cung cấp không tồn tại!")
 
     # Update the product fields with the new values
-    existing_product.ProductID = product_update.ProductID
-    existing_product.ProductName = product_update.ProductName
-    existing_product.ProductBrand = product_update.ProductBrand
-    existing_product.ProductSerial = product_update.ProductSerial
-    existing_product.ProductDescription = product_update.ProductDescription
-    existing_product.UnitPrice = product_update.UnitPrice
-    existing_product.Status = product_update.Status
-    existing_product.Category_CategoryID = product_update.Category_CategoryID
+    existing_provider.ProviderID = product_update.ProductID
+    existing_provider.ProviderName = product_update.ProductName
+    existing_provider.ProviderAddress = product_update.ProductBrand
+    existing_provider.ProviderPhone = product_update.ProductSerial
+    existing_provider.ProviderEmail = product_update.ProductDescription
+    
 
     # Commit the changes to the database
     db.commit()
-    db.refresh(existing_product)
+    db.refresh(existing_provider)
 
-    return {"data": "Thông tin sản phẩm đã được cập nhật thành công!"}
+    return {"data": "Thông tin nhà cung cấp đã được cập nhật thành công!"}
 
 @router.post("/create_products", summary="Tạo nhiều sản phẩm")
 async def create_products(

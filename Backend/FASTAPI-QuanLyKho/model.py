@@ -22,7 +22,7 @@ class ProductModel(Base):
 
 
 #Nhà cung cấp
-class ProviderSchema(Base):
+class ProviderModel(Base):
     __tablename__= "Provider"
     ProviderID = Column(Integer, primary_key=True, index=True)
     ProviderName = Column(String(45))
@@ -32,14 +32,14 @@ class ProviderSchema(Base):
     HasBeenDeleted = Column(String)
 
 #Kho hàng
-class InventorySchema(Base):
+class InventoryModel(Base):
     __tablename__ = "Inventory"
     InventoryID = Column(Integer, primary_key=True, index=True)
     ProductID = Column(String)
     QuantityAvailable = Column(String)
 
 #Lịch sử kho hàng
-class InventoryHistorySchema(Base):
+class InventoryHistoryModel(Base):
     __tablename__ = "InventoryHistory"
     HistoryID = Column(Integer, primary_key=True, index=True)
     ProductID = Column(String)
@@ -48,7 +48,7 @@ class InventoryHistorySchema(Base):
 
 
 #Đơn hàng
-class OrderSchema(Base):
+class OrderModel(Base):
     __tablename__= "Order"
     OrderID = Column(Integer, primary_key=True, index=True)
     ProductID = Column(String)
@@ -57,7 +57,7 @@ class OrderSchema(Base):
     Status = Column(String)
 
 #Chi tiết đơn hàng
-class OrderDetailSchema(Base):
+class OrderDetailModel(Base):
     __tablename__= "OrderDetail"
     OrderDetailID = Column(Integer, primary_key=True, index=True)
     OrderID = Column(Integer)
@@ -66,7 +66,7 @@ class OrderDetailSchema(Base):
     UnitPrice = Column(String)
 
 # Người dùng
-class UserSchema(Base):
+class UserModel(Base):
     __tablename__= "User"
     UserID = Column(Integer, primary_key=True, index=True)
     UserName = Column(String(45), unique=True)
@@ -81,7 +81,7 @@ class CategoryModel(Base):
     HasBeenDeleted=Column(String)
 
 #Hoá đơn
-class InvoiceSchema(Base):
+class InvoiceModel(Base):
     __tablename__ = "Invoice"
     InvoiceID = Column(Integer, primary_key=True, index=True)
     UserID = Column(Integer)
@@ -89,7 +89,7 @@ class InvoiceSchema(Base):
     TotalCost = (String)
 
 #Khách hàng
-class CustomerSchema(Base):
+class CustomerModel(Base):
     __tablename__ = "Customer"
     CustomerID = Column(Integer, primary_key=True, index=True)
     CustomerName = Column(String)

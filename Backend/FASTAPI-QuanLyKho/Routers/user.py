@@ -6,7 +6,7 @@ from fastapi.encoders import jsonable_encoder
 from datetime import date
 from auth.auth_bearer import JWTBearer
 from auth.auth_handler import decodeJWT
-from model import UserSchema
+from model import UserModel
 from database import SessionLocal, engine
 import model
 
@@ -31,5 +31,5 @@ async def get_user(
     user = decodeJWT(authorization.split()[1])
     userID = user.get("user_id")
 
-    user = db.query(UserSchema).filter_by(UserName=userID).first()
+    user = db.query(UserModel).filter_by(UserName=userID).first()
     return {"user": user}

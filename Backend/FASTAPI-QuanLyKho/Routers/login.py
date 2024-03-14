@@ -7,7 +7,7 @@ from fastapi.encoders import jsonable_encoder
 from datetime import date
 from auth.auth_bearer import JWTBearer
 from auth.auth_handler import signJWT,decodeJWT,refresh_access_token
-from model import UserSchema
+from model import UserModel
 # import schema
 from database import SessionLocal, engine
 import model
@@ -34,12 +34,12 @@ async def create_account(
     userPassword:str=Form(...),
     userRole:str=Form(...)
     ):
-    user_exists = db.query(exists().where(UserSchema.UserName == userName)).scalar()
+    user_exists = db.query(exists().where(UserModel.UserName == userName)).scalar()
     if user_exists:
         return JSONResponse(status_code=400, content={"message": "Tài khoản bị trùng"})
     elif len(userPassword)<6:
         return JSONResponse(status_code=400, content={"message": "Mật khẩu tối thiếu là 6 ký tự"})
-    userSchema = UserSchema(UserName = userName, UserPassword=base64.b64encode(userPassword.encode("utf-8")),Role=userRole)
+    userSchema = UserModel(UserName = userName, UserPassword=base64.b64encode(userPassword.encode("utf-8")),Role=userRole)
     db.add(userSchema)
     db.commit()
     db.refresh(userSchema)
@@ -56,9 +56,9 @@ async def login(db:Session=Depends(get_database_session),
     if userPassword == '1':
         return JSONResponse(status_code=400, content={"message": "Sai mật khẩu"})
     password=base64.b64encode(userPassword.encode("utf-8"))
-    user_exists = db.query(exists().where(UserSchema.UserName == userName)).scalar()
-    pass_exists = db.query(exists().where(UserSchema.UserPassword==password)).scalar()
-    user = db.query(UserSchema).filter(UserSchema.UserName == userName).first()
+    user_exists = db.query(exists().where(UserModel.UserName == userName)).scalar()
+    pass_exists = db.query(exists().where(UserModel.UserPassword==password)).scalar()
+    user = db.query(UserModel).filter(UserModel.UserName == userName).first()
     role_exists = user.Role if user else None
     # print(password)
     if user_exists==False:
@@ -82,8 +82,8 @@ async def login(db: Session = Depends(get_database_session),
                 userNewPassword: str = Form(...),
                 userConfirmPassword: str = Form(...)):
     
-    Duser = db.query(UserSchema).filter(UserSchema.UserName == userName).first()
-    user = db.query(UserSchema).get(userID)
+    Duser = db.query(UserModel).filter(UserModel.UserName == userName).first()
+    user = db.query(UserModel).get(userID)
 
     if Duser is None:
         return JSONResponse(status_code=400, content={"message": "Người dùng không hợp lệ!"})

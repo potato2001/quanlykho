@@ -94,6 +94,7 @@ async def create_categories(
         return {"data": f"Sản phẩm đã tồn tại: {', '.join(duplicates)}"}
 
     return {"data": "Tạo loại sản phẩm thành công"}
+
 #Cập nhật nhiều loại sản phẩm
 @router.put("/update_categories", summary="Cập nhật nhiều loại sản phẩm")
 async def update_categories(
@@ -140,6 +141,8 @@ async def delete_category(category_id: str, db: Session = Depends(get_database_s
     db.commit()
 
     return {"data": "Loại sản phẩm đã được xóa thành công!"}
+
+#Nhập loại sản phẩm theo file csv
 @router.post("/create_categories_from_csv", summary="Create categories from CSV")
 async def create_categories_from_csv(
     csv_file: UploadFile = File(...),  # Accept CSV file uploads
