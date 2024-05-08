@@ -26,7 +26,7 @@ class ProviderModel(Base):
     __tablename__= "Provider"
     ProviderID = Column(Integer, primary_key=True, index=True)
     ProviderName = Column(String(45))
-    ProviderAddress = Column(Integer)
+    ProviderAddress = Column(String)
     ProviderPhone = Column(String(100),unique=True)
     ProviderEmail = Column(String)
     HasBeenDeleted = Column(String)

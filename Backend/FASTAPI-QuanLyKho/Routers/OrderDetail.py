@@ -9,8 +9,8 @@ from auth.auth_bearer import JWTBearer
 from auth.auth_handler import signJWT,decodeJWT,refresh_access_token
 from database import SessionLocal, engine
 import model
-from model import ProductModel,InventoryModel
-from schema import ProductSchema
+from model import OrderDetailModel,ProductModel,OrderDetail
+from schema import OrderDetailSchema
 from typing import List
 router = APIRouter()  
 model.Base.metadata.create_all(bind=engine)
@@ -22,7 +22,8 @@ def get_database_session():
         yield db
     finally:
         db.close()
-#Tạo sản phẩm
+
+#Tạo đơn hàng
 @router.post("/create_product", summary="Tạo sản phẩm")
 async def create_product(
     productSchema: ProductSchema,

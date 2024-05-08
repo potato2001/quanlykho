@@ -26,7 +26,7 @@ def get_database_session():
     finally:
         db.close()
 
-#Thêm loại
+#Thêm loại sản phẩm
 @router.post("/create_category", summary="Tạo loại sản phẩm")
 async def create_category(
     categorySchema: CategorySchema,
@@ -54,16 +54,13 @@ async def update_product(
     category_update: CategorySchema,
     db: Session = Depends(get_database_session),
 ):
-    # Check if the product with the given ProductID exists
     existing_category = db.query(CategoryModel).filter(CategoryModel.CategoryID == category_id).first()
     if not existing_category:
         raise HTTPException(status_code=404, detail="Loại sản phẩm không tồn tại!")
 
-    # Update the product fields with the new values
     existing_category.CategoryName = category_update.CategoryName
     existing_category.HasBeenDeleted = category_update.HasBeenDeleted
   
-    # Commit the changes to the database
     db.commit()
     db.refresh(existing_category)
 
@@ -73,7 +70,6 @@ async def create_categories(
     categories_schema: MultipleCategoriesSchema,
     db: Session = Depends(get_database_session),
 ):
-    # List to store any duplicate category names
     duplicates = []
 
     for category in categories_schema.categories:
@@ -81,7 +77,6 @@ async def create_categories(
         if category_exists:
             duplicates.append(category.CategoryName)
         else:
-            # Create a new CategoryModel instance and add it to the database
             new_category = CategoryModel(
                 CategoryName=category.CategoryName,
                 HasBeenDeleted=category.HasBeenDeleted,
@@ -104,40 +99,34 @@ async def update_categories(
     duplicates = []
 
     for category_update in categories_update:
-        # Check if the category with the given CategoryID exists
         existing_category = db.query(CategoryModel).filter(CategoryModel.CategoryID == category_update.CategoryID).first()
         if not existing_category:
             raise HTTPException(status_code=404, detail=f"Loại sản phẩm có ID {category_update.CategoryID} không tồn tại!")
 
-        # Check for duplicate CategoryName
         if category_update.CategoryName != existing_category.CategoryName:
             category_exists = db.query(exists().where(CategoryModel.CategoryName == category_update.CategoryName)).scalar()
             if category_exists:
                 duplicates.append(category_update.CategoryName)
 
-        # Update the category fields with the new values
         existing_category.CategoryName = category_update.CategoryName
         existing_category.HasBeenDeleted = category_update.HasBeenDeleted
 
     if duplicates:
         return {"data": f"Loại sản phẩm đã tồn tại: {', '.join(duplicates)}"}
 
-    # Commit the changes to the database
     db.commit()
 
     return {"data": "Thông tin các loại sản phẩm đã được cập nhật thành công!"}
+
 #Xóa loại sản phẩm
 @router.delete("/delete_category/{category_id}", summary="Xóa loại sản phẩm")
 async def delete_category(category_id: str, db: Session = Depends(get_database_session)):
-    # Check if the category with the given CategoryID exists
     existing_category = db.query(CategoryModel).filter(CategoryModel.CategoryID == category_id).first()
     if not existing_category:
         raise HTTPException(status_code=404, detail=f"Loại sản phẩm có ID {category_id} không tồn tại!")
 
-    # Soft delete by marking HasBeenDeleted as True
     existing_category.HasBeenDeleted = "Đã xoá"
 
-    # Commit the changes to the database
     db.commit()
 
     return {"data": "Loại sản phẩm đã được xóa thành công!"}
@@ -179,6 +168,7 @@ async def create_categories_from_csv(
 
     db.commit()
     return {"message": "Categories created from CSV"}
+
 #Lấy tất cả loại sản phẩm
 @router.get("/category", summary="Lấy tất cả loại sản phẩm")
 def get_category(

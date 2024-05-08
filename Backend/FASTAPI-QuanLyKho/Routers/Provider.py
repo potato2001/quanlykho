@@ -10,7 +10,7 @@ from auth.auth_handler import signJWT,decodeJWT,refresh_access_token
 from database import SessionLocal, engine
 import model
 from model import ProviderModel
-from schema import ProductSchema
+from schema import ProviderSchema
 from typing import List
 router = APIRouter()  
 model.Base.metadata.create_all(bind=engine)
@@ -23,32 +23,31 @@ def get_database_session():
     finally:
         db.close()
 #Tạo thông tin nhà cung cấp
-@router.post("/create_product", summary="Tạo sản phẩm")
-async def create_product(
-    providerSchema: ProviderModel,
+@router.post("/create_provider", summary="Tạo nhà cung cấp")
+async def create_provider(
+    providerSchema: ProviderSchema,
     db: Session = Depends(get_database_session),
 ):
-    provider_exists = db.query(exists().where(ProviderModel.ProviderID == providerSchema.ProviderID)).scalar()
+    provider_exists = db.query(exists().where(ProviderModel.ProviderPhone == providerSchema.ProviderPhone)).scalar()
     if provider_exists:
         return {"data": "Nhà cung cấp đã tồn tại!"}
 
     new_provider = ProviderModel(
-        ProviderID=providerSchema.ProviderID,
+        # ProviderID=providerSchema.ProviderID,
         ProviderName=providerSchema.ProviderName,
         ProviderAddress=providerSchema.ProviderAddress,
         ProviderPhone=providerSchema.ProviderPhone,
         ProviderEmail=providerSchema.ProviderEmail,
         HasBeenDeleted=0,
-
     )
-    new_provider=ProviderModel()
 
     db.add(new_provider)
     db.commit()
     db.refresh(new_provider)
-    return providerSchema
+    return HTTPException(status_code=200, detail="Tạo nhà cung cấp thành công")
 
-#Sửa thông tin sản phẩm
+
+#Sửa thông tin nhà cung cấp
 @router.put("/update_provider/{ProviderID}", summary="Cập nhật thông tin nhà cung cấp")
 async def update_provider(
     ProviderID: str,
@@ -61,294 +60,40 @@ async def update_provider(
         raise HTTPException(status_code=404, detail="Nhà cung cấp không tồn tại!")
 
     # Update the product fields with the new values
-    existing_provider.ProviderID = product_update.ProductID
-    existing_provider.ProviderName = product_update.ProductName
-    existing_provider.ProviderAddress = product_update.ProductBrand
-    existing_provider.ProviderPhone = product_update.ProductSerial
-    existing_provider.ProviderEmail = product_update.ProductDescription
+    existing_provider.ProviderName = provider_update.ProviderName
+    existing_provider.ProviderAddress = provider_update.ProviderAddress
+    existing_provider.ProviderPhone = provider_update.ProviderPhone
+    existing_provider.ProviderEmail = provider_update.ProviderEmail
     
 
     # Commit the changes to the database
     db.commit()
     db.refresh(existing_provider)
 
-    return {"data": "Thông tin nhà cung cấp đã được cập nhật thành công!"}
+    return HTTPException(status_code=200, detail="Thông tin nhà cung cấp đã được cập nhật thành công!")
 
-@router.post("/create_products", summary="Tạo nhiều sản phẩm")
-async def create_products(
-    products: List[ProductSchema],
+#Lấy tất cả nhà cung cấp
+@router.get("/Providers", summary="Lấy tất cả thông tin nhà cung cấp")
+def get_Providers(
     db: Session = Depends(get_database_session),
 ):
-    # List to store any duplicate product IDs
-    duplicates = []
-
-    for productSchema in products:
-        product_exists = db.query(exists().where(ProductModel.ProductSerial == productSchema.ProductSerial)).scalar()
-        if product_exists:
-            duplicates.append(productSchema.ProductID)
-        else:
-            # Create a new ProductSchema instance and add it to the database
-            new_product = ProductModel(
-                ProductID=productSchema.ProductID,
-                ProductName=productSchema.ProductName,
-                ProductBrand=productSchema.ProductBrand,
-                ProductSerial=productSchema.ProductSerial,
-                ProductDescription=productSchema.ProductDescription,
-                UnitPrice=productSchema.UnitPrice,
-                Status=productSchema.Status,
-                HasBeenDeleted=0,
-                Category_CategoryID=productSchema.Category_CategoryID
-            )
-            db.add(new_product)
-
-    db.commit()
-
-    if duplicates:
-        return {"data": f"Sản phẩm đã tồn tại: {', '.join(duplicates)}"}
-
-    return {"data": "Tạo sản phẩm thành công"}
-@router.put("/update_products", summary="Cập nhật nhiều sản phẩm")
-async def update_products(
-    products_update: List[ProductSchema],
-    db: Session = Depends(get_database_session),
-):
-    duplicates = []
-
-    for product_update in products_update:
-        # Check if the product with the given ProductID exists
-        existing_product = db.query(ProductModel).filter(ProductModel.ProductID == product_update.ProductID).first()
-        if not existing_product:
-            raise HTTPException(status_code=404, detail=f"Sản phẩm có ID {product_update.ProductID} không tồn tại!")
-
-        # Check for duplicate ProductID
-        if product_update.ProductID != existing_product.ProductID:
-            product_exists = db.query(exists().where(ProductModel.ProductID == product_update.ProductID)).scalar()
-            if product_exists:
-                duplicates.append(product_update.ProductID)
-
-        # Update the product fields with the new values
-        existing_product.ProductCode = product_update.ProductCode
-        existing_product.ProviderID = product_update.ProviderID
-        existing_product.ProductName = product_update.ProductName
-        existing_product.ProductBrand = product_update.ProductBrand
-        existing_product.ProductSerial = product_update.ProductSerial
-        existing_product.ProductDescription = product_update.ProductDescription
-        existing_product.ReorderQuantity = product_update.ReorderQuantity
-        existing_product.UnitPrice = product_update.UnitPrice
-        existing_product.Status = product_update.Status
-        existing_product.Category_CategoryID = product_update.Category_CategoryID
-
-    if duplicates:
-        return {"data": f"Sản phẩm đã tồn tại: {', '.join(duplicates)}"}
-
-    # Commit the changes to the database
-    db.commit()
-
-    return {"data": "Thông tin các sản phẩm đã được cập nhật thành công!"}
-
-# @router.put("/update_product",dependencies=[Depends(JWTBearer())], summary="Sửa sản phẩm")
-# async def update_product(
-#     db: Session = Depends(get_database_session),
-#     ProductID: str = Form(...),
-#     ProviderID: str = Form(...),
-#     ProductName: str = Form(...),
-#     CategoryID: str = Form(...),
-#     ProductBrand:str = Form(...),
-#     ProductSerial:str = Form(...),
-#     ProductDescription:str = Form(...),
-#     ReorderQuantity: int = Form(...),
-#     UnitPrice: float = Form(...),
-# ):
-#     product_exists = db.query(exists().where(ProductSchema.ProductID == ProductID)).scalar()
-#     product = db.query(ProductSchema).get(ProductID)
-#     if product_exists:
-#         print(product)
-#         product.ProductName = ProductName
-#         product.ProviderID = ProviderID
-#         product.CategoryID = CategoryID
-#         product.ProductBrand = ProductBrand
-#         product.ProductSerial = ProductSerial
-#         product.ProductDescription = ProductDescription
-#         product.ReorderQuantity = ReorderQuantity
-#         product.UnitPrice = UnitPrice
-#         db.commit()
-#         db.refresh(product)
-#         return {
-#             "data": "Thông tin sản phẩm đã được cập nhật!"
-#         }
-#     else:
-#         return JSONResponse(status_code=400, content={"message": "Không có thông tin sản phẩm!"})
-
-# #Xóa sản phẩm
-# @router.delete("/delete_product",dependencies=[Depends(JWTBearer())], summary="Xóa sản phẩm")
-# async def delete_product(
-#     db: Session = Depends(get_database_session),
-#     ProductID: int = Form(...)
-# ):
-#     Product_exists = db.query(exists().where(ProductSchema.ProductID == ProductID)).scalar()
-#     if Product_exists:
-#         Product = db.query(ProductSchema).get(ProductID)
-#         Product.hasBeenDeleted=1
-#         # db.delete(product)
-#         db.commit()
-#         db.refresh(Product)
-
-#         return{
-#          "data": "Xóa sản phẩm thành công!"
-#         }
-#     else:
-#         return JSONResponse(status_code=400, content={"message": "Không tồn tại sản phẩm!"})
-
-#Lấy sản phẩm theo mã sản phẩm
-@router.get("/Product/{productID}", summary="Lấy sản phẩm theo mã")
-def get_courses_with_subject_info(
-    db: Session = Depends(get_database_session),
-    productID = int
-):
-    product = (
-    db.query(ProductModel)  # Specify the model (ProductSchema) to query
-    .filter(ProductModel.ProductID == productID)
-    .first()
-    )
-    # print(products)
-    # result = []
-    # for product in products:
-    #     result.append(
-    #         {   
-    #           product
-    #         }
-    #     )
-    return {"product": product}
-
-#Lấy tất cả sản phẩm
-@router.get("/Products", summary="Lấy tất cả sản phẩm")
-def get_products(
-    db: Session = Depends(get_database_session),
-):
-    Product = (
-    db.query(ProductModel)  # Specify the model (ProductSchema) to query
+    Provider = (
+    db.query(ProviderModel)
     .all()
     )
-    # print(Product)
-    # result = []
-    # for product in Product:
-    #     result.append(
-    #         {   
-    #           product
-    #         }
-    #     )
-    return {"products": Product}
+    return {"Providers": Provider}
 
-# #Lấy tất cả sản phẩm còn trong kho
-# @router.get("/Product/All", summary="Lấy sản phẩm theo mã")
-# def get_all_products(
-#     db: Session = Depends(get_database_session),
-# ):
-#     Product = (
-#     db.query(ProductSchema) 
-#     .filter(ProductSchema.ReorderQuantity>0,ProductSchema.HasBeenDeleted == 0)
-#     .all()
-#     )
-#     print(Product)
-#     result = []
-#     for Product in Product:
-#         result.append(
-#             {   
-#               Product
-#             }
-#         )
-#     return {"data": result}
-
-#Lấy tất cả sản phẩm theo hãng
-@router.get("/Product/All/ProductBrand", summary="Lấy sản phẩm theo hãng")
-def get_all_products_with_brand(
-    ProductBrand: str = Query(None),
+#Lấy thông tin nhà cung cấp theo tên nhà cung cấp
+@router.get("/Provider/{providerName}", summary="Lấy thông tin nhà cung cấp theo tên")
+def get_provider_name(
+    providerName: str,
     db: Session = Depends(get_database_session),
 ):
     query = (
-        db.query(ProductModel)
+        db.query(ProviderModel).filter(ProviderModel.ProviderName == providerName)
     )
-
-    if ProductBrand:
-        query = query.filter(ProductModel.ProductBrand == ProductBrand)
-
-    Product = query.all()
-    result = []
-    for Product in Product:
-        result.append(
-            {   
-              Product
-            }
-        )
-    return {"data": result}
-
-# #Lấy tất cả sản phẩm theo hãng và còn hàng (chạy không lọc ra theo hãng)
-# @router.get("/Product/All/ProductBrand/Instock", summary="Lấy sản phẩm theo hãng và còn hàng")
-# def get_all_products_with_brand_instock(
-#     ProductBrand: str = Query(None),
-#     db: Session = Depends(get_database_session),
-# ):
-#     query = (
-#         db.query(ProductSchema)
-#         .filter(ProductSchema.ReorderQuantity > 0, ProductSchema.HasBeenDeleted == 0)
-#     )
-
-#     if ProductBrand:
-#         query = query.filter(ProductSchema.ProductBrand == ProductBrand)
-
-#     Product = query.all()
-#     result = []
-#     for Product in Product:
-#         result.append(
-#             {   
-#               Product
-#             }
-#         )
-#     return {"data": result}
-
-#Lấy tất cả sản phẩm theo loại
-@router.get("/Product/All/Category", summary="Lấy sản phẩm theo loại")
-def get_all_products_with_category(
-    CategoryID: str = Query(None),
-    db: Session = Depends(get_database_session),
-):
-    query = (
-        db.query(ProductModel)
-    )
-
-    if CategoryID:
-        query = query.filter(ProductModel.Category_CategoryID == CategoryID)
-
-    Product = query.all()
-    result = []
-    for Product in Product:
-        result.append(
-            {   
-              Product
-            }
-        )
-    return {"data": result}
-
-# #Lấy tất cả sản phẩm thuộc loại được chọn và còn hàng
-# @router.get("/Product/All/ProductCategory/Instock", summary="Lấy sản phẩm theo loại và còn hàng")
-# def get_all_products_with_category(
-#     CategoryID: str = Query(None),
-#     db: Session = Depends(get_database_session),
-# ):
-#     query = (
-#         db.query(ProductSchema)
-#         .filter(ProductSchema.ReorderQuantity > 0, ProductSchema.HasBeenDeleted == 0)
-#     )
-# #dadad
-#     if CategoryID:
-#         query = query.filter(ProductSchema.CategoryID == CategoryID)
-
-#     Product = query.all()
-#     result = []
-#     for Product in Product:
-#         result.append(
-#             {   
-#               Product
-#             }
-#         )
-#     return {"data": result}
+    
+    Provider = query.all()
+    if len(Provider) == 0:
+        raise HTTPException(status_code=404, detail="Nhà cung cấp không tồn tại!")
+    return {"data": Provider}
