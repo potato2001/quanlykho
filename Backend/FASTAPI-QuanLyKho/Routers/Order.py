@@ -24,9 +24,10 @@ def get_database_session():
         db.close()
 
 #Tạo đơn hàng (Chưa xong và chưa có phần nối với thông tin người đặt)
-@router.post("/create_order", summary="Tạo đơn hàng")
+@router.post("/create_order_detail", summary="Tạo chi tiết đơn hàng")
 async def create_order(
     db: Session = Depends(get_database_session),
+    CustomerID:str =  Form(...),
     ProductID: str = Form(...),
     ProductQuantity: str = Form(...),
     #OrderDate:str=Form(...),

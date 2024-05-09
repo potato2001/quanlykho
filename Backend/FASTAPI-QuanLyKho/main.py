@@ -11,7 +11,7 @@ from datetime import date
 from auth.auth_bearer import JWTBearer
 from auth.auth_handler import signJWT,decodeJWT
 from database import SessionLocal, engine
-from Routers import login,user,Category,Product,Customer,Provider,Inventory
+from Routers import login,user,Category,Product,Customer,Provider,Inventory,OrderDetail
 
 import uuid
 from fastapi.middleware.cors import CORSMiddleware
@@ -40,6 +40,9 @@ app.include_router(Category.router, tags=['Category Controller'], prefix='')
 
 #Nhà cung cấp
 app.include_router(Provider.router, tags=['Provider Controller'], prefix='')
+#Đơn hàng
+app.include_router(OrderDetail.router, tags=['Oder Detail Controller'], prefix='')
+
 # app.include_router(courseClass.router, tags=['Class Controller'], prefix='')
 # app.include_router(exam.router, tags=['Exam Controller'], prefix='')
 # app.include_router(studentExam.router, tags=['Student Exam Controller'], prefix='')

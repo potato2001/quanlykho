@@ -10,6 +10,7 @@ from sqlalchemy.orm import  relationship
 class ProductModel(Base):
     __tablename__= "Product"
     ProductID = Column(Integer, primary_key=True, index=True)
+    ProductCode=Column(String)
     ProductName = Column(String(100))
     ProductBrand = Column(String(10))
     ProductSerial = Column(String(10), unique=True)
@@ -48,22 +49,26 @@ class InventoryHistoryModel(Base):
 
 
 #Đơn hàng
-class OrderModel(Base):
-    __tablename__= "Order"
-    OrderID = Column(Integer, primary_key=True, index=True)
-    ProductID = Column(String)
-    ProductQuantity=Column(Integer)
-    OrderDate = Column(String)
-    Status = Column(String)
-
-#Chi tiết đơn hàng
 class OrderDetailModel(Base):
     __tablename__= "OrderDetail"
     OrderDetailID = Column(Integer, primary_key=True, index=True)
-    OrderID = Column(Integer)
-    ProductID = Column(String)
-    OrderQuantity = Column(Integer)
-    UnitPrice = Column(String)
+    OrderDetailCode=Column(String)
+    CustomerID = Column(Integer)
+    ProductID = Column(Integer)
+    OrderQuantity = Column(String)
+    OrderDate = Column(String)
+    ReceivedDate = Column(String)
+    Status = Column(String)
+
+
+# #Chi tiết đơn hàng
+# class OrderDetailModel(Base):
+#     __tablename__= "OrderDetail"
+#     OrderDetailID = Column(Integer, primary_key=True, index=True)
+#     OrderID = Column(Integer)
+#     ProductID = Column(String)
+#     OrderQuantity = Column(Integer)
+#     UnitPrice = Column(String)
 
 # Người dùng
 class UserModel(Base):

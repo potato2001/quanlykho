@@ -28,13 +28,14 @@ async def create_product(
     productSchema: ProductSchema,
     db: Session = Depends(get_database_session),
 ):
-    product_exists = db.query(exists().where(ProductModel.ProductID == productSchema.ProductID)).scalar()
+    product_exists = db.query(exists().where(ProductModel.ProductCode == productSchema.ProductCode)).scalar()
     if product_exists:
         return {"data": "Sản phẩm đã tồn tại!"}
 
     # Create a new ProductSchema instance and add it to the database
     new_product = ProductModel(
-        ProductID=productSchema.ProductID,
+        ProductCode=productSchema.ProductCode,
+
         ProductName=productSchema.ProductName,
         ProductBrand=productSchema.ProductBrand,
         ProductSerial=productSchema.ProductSerial,
@@ -42,6 +43,7 @@ async def create_product(
         UnitPrice=productSchema.UnitPrice,
         Status=productSchema.Status,
         HasBeenDeleted=0,
+        Provider_ProviderID=productSchema.Provider_ProviderID,
         Category_CategoryID=productSchema.Category_CategoryID
 
     )

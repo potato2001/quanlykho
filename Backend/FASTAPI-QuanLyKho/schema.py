@@ -4,7 +4,7 @@ from typing import Optional,List
 
 
 class ProductSchema(BaseModel):
-    ProductID :str
+    ProductCode :str
     ProductName :str
     ProductCategory :str
     ProductBrand :str
@@ -54,12 +54,15 @@ class InventorySchema(BaseModel):
 
 class MultipleCategoriesSchema(BaseModel):
     categories: List[CategorySchema]
-
-class OrderDetailSchema(BaseModel):
-    OrderDetailID: int
+class ProductDetail(BaseModel):
+    ProductID: int
     OrderQuantity: int
-    ReceivedDate: str
+class OrderDetailSchema(BaseModel):
+    # OrderDetailID: int
+    # OrderDetailCode:str
+    CustomerID: int
+    Products: List[ProductDetail]
+    # OrderQuantity: int
+    # ReceivedDate: str
+    # OrderDate:str
     Status: int
-    Oder_OderID: int
-    Product_ProductID: str
-    Customer_CustomerID: int
